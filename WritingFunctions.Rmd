@@ -1,0 +1,98 @@
+---
+title: "Week3Practice - Functions"
+author: "Brandon Croarkin"
+date: "April 26, 2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Writing Functions
+
+This will run through how to create functions in R. Our goal is to re-create the Mode function to find the most frequently occuring number in an array
+
+```{r}
+#First we will create some data to work with
+tinyData <- c(1,2,1,2,3,3,3,4,5,4,5)
+tinyData
+
+#Then we can create the framework for the function
+myMode <- function(myVector) {
+  uniqueValues <- unique(myVector)
+  return(uniqueValues)
+}
+
+#Can test this function out on the tinyData
+myMode(tinyData)
+```
+
+Now we need to edit this formula to work as intended. 
+
+```{r}
+#tabulate gives the count for each unique variable
+tabulate(tinyData)
+
+#apply to our function
+myMode <- function(myVector) {
+  uniqueValues <- unique(myVector)
+  uniqueCounts <- tabulate(myVector)
+  return(uniqueVector)
+}
+
+dataDisplay <- data.frame(unique(tinyData), tabulate(tinyData))
+dataDisplay
+```
+
+We can see that we now can create a data frame with the unique number and the count of each number. We now need to pick the unique number that has the highest count. 
+
+```{r}
+myMode <- function(myVector) {
+  uniqueValues <- unique(myVector)
+  uniqueCounts <- tabulate(myVector)
+  return(uniqueValues[which.max(uniqueCounts)])
+}
+
+tinyData
+myMode(tinyData)
+
+```
+
+Now we want to test the function some more to see if it has any flaws/errors.
+
+```{r}
+tinyData <- c(tinyData, 9,9,9,9,9,9,9)
+myMode(tinyData)
+```
+
+Can see we are getting an NA. Why?
+```{r}
+str(tinyData)
+summary(tinyData)
+tabulate(tinyData)
+max(tabulate(tinyData))
+unique(tinyData)
+max(c(5,2,3,2,0,0,0,7))
+```
+
+The problem is that the two arrays (uniqueValues and uniqueCounts) were not of the same length. This is because it tabulate gave counts the missing numbers (6,7,8)
+```{r}
+myMode <- function(myVector) {
+  uniqueValues <- unique(myVector)
+  uniqueCounts <- tabulate(match(myVector,uniqueValues))
+  return(uniqueValues[which.max(uniqueCounts)])
+}
+
+myMode(tinyData)
+```
+
+SUCCESS!! The match function only tabulated where there was a match between the vectors of tinyData and the uniqueValues in tinyData.
+
+Note: in R the function to do the mode of a data set is mfv
+```{r}
+library(modeest)
+mfv(tinyData)
+```

@@ -1,0 +1,81 @@
+---
+title: "Writing Functions2"
+output: html_notebook
+---
+
+###Writing Functions - Part2
+
+```{r}
+bestMPG <- function() {
+  index <- which.max(mtcars$mpg)
+  car <- return(mtcars[index,])
+  return(car)
+}
+```
+
+Now let's test this new function
+
+```{r}
+bestMPG
+```
+
+It would also be good to make this a little more interesting and get the name of the car that has the best MPG.
+
+```{r}
+bestMPGName <- function() {
+  index <- which.max(mtcars$mpg)
+  car <- rownames(mtcars)[index]
+  return(car)
+}
+```
+
+Let's test this function
+
+```{r}
+bestMPGName()
+
+```
+
+SUCCESS!!
+
+Let's make this function a bit more useful and make a function that finds the car with the max for the column name that you choose. 
+
+```{r}
+#the function takes an input (x), which should be a column in mtcars and first it finds the index of the max value for that column. It then finds the rowname in mtcars for that index value. 
+bestCar <- function(x) {
+  colIndex <- which(colnames(mtcars)==x)
+  rowIndex <- which.max(mtcars[,colIndex])
+  rnames <- rownames(mtcars)
+  car <- rnames[rowIndex]
+  print(car)
+}
+```
+
+Let's test this function.
+
+```{r}
+bestCar("mpg")
+
+```
+
+```{r}
+bestCar("hp")
+
+```
+
+```{r}
+bestCar("cyl")
+
+```
+
+```{r}
+#let's test this with something that is not a column name in mtcars
+bestCar("not a column")
+
+```
+
+
+
+
+
+
