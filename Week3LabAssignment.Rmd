@@ -1,0 +1,88 @@
+---
+title: "IST687_Lab3"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+####Task 1: Write, test, and submit the necessary code in R to accomplish the following
+
+1. Generate a normal distribution, or 1000 samples, with a mean of 80
+```{r}
+norm <- rnorm(1000,80)
+```
+
+2. Write a	function	that	takes	three	variables	- a	vector,	a	min	and	a	max,	and	returns	the	number	of	elements	in	the	vector	that	are	between	the	min	and	max (including the	min	and	max)
+```{r}
+numb <- function(vec, mini, maxi) {
+  count <- 0
+  for (x in vec) {
+    if (mini <= vec[x] & vec[x] <= maxi) {
+      count <- count + 1
+    }
+  }
+  return(count)
+}
+```
+
+3. Use	the	function	to	see	how	many	of	your	normal	distribution samples are	within	the	range	of	79	to	81
+```{r}
+numb(norm,79,81)
+```
+
+4. Repeat	3	times	(creating	a	normal	distribution	and	then	calling	your	function),	to	see	if	the	results	vary
+```{r}
+norm1 <- rnorm(1000,80)
+norm2 <- rnorm(1000,80)
+norm3 <- rnorm(1000,80)
+
+numb(norm1,79,81)
+numb(norm2,79,81)
+numb(norm3,79,81)
+```
+
+
+####Task	2:	Write,	test,	and	submit	the	necessary	code	in	R	to	accomplish	the	following: 
+
+```{r}
+#Need to install the VGAM library to use for Pareto distributions
+install.packages("VGAM")
+library(VGAM)
+```
+
+1. Generate	51	random	numbers	in	a	Pareto	distribution	and	assign	them	to	a	variable	called	"FSApops."
+```{r}
+FSApops <- rpareto(51, 40000, 15)
+FSApops
+```
+
+2. Specify	a	"location"	and	a	"shape"	for	your	Pareto	distribution	that	makes	it	as	similar	as	possible	to	the	actual	distribution	of	state	populations.
+```{r}
+FSApops1 <- rpareto(51, 40000, 30)
+FSApops2 <- rpareto(51, 40000, 5)
+FSApops3 <- rpareto(51, 40000, 50)
+```
+
+3. 	Create	a	histogram	that	shows	the	distribution	of	values	in	FSApops
+```{r}
+hist(FSApops) #FSApops appears to be the closest to the US state distribution with a couple outliers
+hist(FSApops1)
+hist(FSApops2)
+hist(FSApops3)
+```
+
+4. 	Use	a	command	to	report	the	actual	mean	and	the	actual	standard	deviation	of	the	51	values	stored	in	FSApops.
+```{r}
+mean(FSApops)
+sd(FSApops)
+```
+
+5. 	Use	a	command	to	report	the	population	of	your	largest	fictional	state	(i.e.,	your	California)	and	your	smallest	fictional	state	(i.e.,	your	Wyoming).
+```{r}
+max(FSApops)
+min(FSApops)
+
+```
+
