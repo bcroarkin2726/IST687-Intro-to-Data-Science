@@ -1,0 +1,162 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+###Central Limit Theorem and the Law of Large Numbers
+
+Let's test the Central Limit Theorem and the Law of Large Numbers through R!
+
+```{r}
+#first let's make a jar with two elements (represent two different color jelly beans)
+jar <- c(1,0)
+```
+
+```{r}
+#now let's take some samples out of the jar
+numSamples <- 4
+sample(jar,numSamples,replace=TRUE)
+```
+
+```{r}
+#let's see what happens if we do this multiple times
+sample(jar,numSamples,replace=TRUE)
+sample(jar,numSamples,replace=TRUE)
+sample(jar,numSamples,replace=TRUE)
+```
+
+```{r}
+#let's test what happens if we make replace = FALSE
+sample(jar,numSamples,replace=FALSE)
+```
+This throws an error because the sample is more than the population. So we chose a number, tossed it, had one left, also tossed it, and then had no numbers left to choose from. 
+
+```{r}
+#let's see what happens if we take a sample size of two
+sample(jar,2,replace=FALSE)
+```
+It returns two numbers (0,1). It could also return (1,0), but these are the only two possible combinations. 
+
+We can also do some basic statistics on these numbers
+
+```{r}
+mean(sample(jar,numSamples,replace=TRUE))
+sum(sample(jar,numSamples,replace=TRUE))
+
+```
+
+We can also run this sample multiple times with the replicate function. 
+```{r}
+replicate(5,sample(jar,numSamples,replace=TRUE), simplify = FALSE)
+```
+
+Let's see what happens if we do simplify = FALSE
+```{r}
+replicate(5,sample(jar,numSamples,replace=TRUE), simplify = TRUE)
+```
+
+We can also play around with how many times we replicate.
+```{r}
+replicate(10,sample(jar,numSamples,replace=TRUE), simplify = TRUE)
+```
+
+```{r}
+replicate(10,mean(sample(jar,numSamples,replace=TRUE)), simplify = TRUE)
+```
+
+```{r}
+sampleMeans <- replicate(10,mean(sample(jar,numSamples,replace=TRUE)), simplify = TRUE)
+```
+
+```{r}
+mean(sampleMeans)
+```
+
+If we use a larger sample we would expect to be closer to the true mean of 0.5
+```{r}
+sampleMeans2 <- replicate(100,mean(sample(jar,numSamples,replace=TRUE)), simplify = TRUE)
+```
+
+```{r}
+mean(sampleMeans2)
+```
+
+```{r}
+quantile(sampleMeans2)
+```
+
+Now that we have explored how to use these functions, we can begin to use them to visaully explore the Central Limit Theorem and the Law of Large Numbers. 
+```{r}
+hist(sampleMeans2)
+```
+
+With this first histogram we are beginning to see the normal distribution, but because out numSamples is small we are not seeing the full spread. 
+
+```{r}
+numSamples <- 25
+sampleMeans3 <- replicate(100,mean(sample(jar,numSamples,replace=TRUE)), simplify = TRUE)
+hist(sampleMeans3)
+```
+
+We have filled in the values in the normal distribution, but it is still far from the normal distribution. Let's try increasing numSamples again. 
+
+```{r}
+numSamples <- 100
+sampleMeans4 <- replicate(100,mean(sample(jar,numSamples,replace=TRUE)), simplify = TRUE)
+hist(sampleMeans4)
+```
+
+This gets closer to a normal distribution and also makes it a lot tighter. This makes sense since we have a larger numSamples, each given mean of that sample is less likely to be an extreme number. 
+
+Let's try to create a jar variable with three variables with three variables (-1,0,1) and sample it 250 and get the mean. 
+```{r}
+jar2 <- c(-1,0,1)
+sampleMean <- mean(replicate(250,sample(jar2,1,replace=TRUE), simplify = TRUE))
+print(sampleMean)
+```
+
+Let's continue to play with samples but with a new approach.
+
+First let's play around with a small sample size
+
+```{r}
+samples <- rnorm(50,50,2)
+paste("Mean of samples is ", mean(samples))
+paste("Standard deviation of samples is ", sd(samples))
+```
+We can see that both of the values are relatively close to the mean and standard deviation that we specified in rnorm. 
+
+```{r}
+hist(samples)
+```
+The histogram of the data also looks very close to a normal distribution.
+
+Now let's try this again but with a much larger sample size.
+
+```{r}
+samples2 <- rnorm(10000,50,2)
+paste("Mean of samples is ", mean(samples2))
+paste("Standard deviation of samples is ", sd(samples2))
+```
+
+We can see that both of the values are very close to the mean and standard deviation that we specified in rnorm. 
+
+```{r}
+hist(samples2)
+```
+The histogram of the data now looks very close to a normal distribution.
+
+We can also test the skewness in the data. 
+
+```{r}
+#note: you need to have the moments packaged installed to run these functions
+skewness(samples)
+```
+This negative skew number indicates that the tail on the left side is longer or fatter than on the right side.
+
+
+
+
+
+
+
