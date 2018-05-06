@@ -1,0 +1,178 @@
+---
+title: "Croarkin_Week4HWAssignment"
+author: "Brandon Croarkin"
+date: "May 6, 2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## IST 687 - Week 4 Samples HW
+
+Let's continue our exploration of sampling.
+
+```{r}
+#load required packages
+library(moments)
+```
+
+####Step 1: Write a summarizing function to understand the distribution of a vector
+
+1. The function, call it 'printVecInfo' should take a vector as input
+
+```{r}
+#making the basic function framework
+printVecInfo <- function(vector){
+  
+}
+```
+
+2. The function should print the following information: Mean, Median, Min & Max, Standard Deviation, Quantiles (.05 and .95), and Skewness
+
+```{r}
+#setting up the output of the function
+printVecInfo <- function(vector){
+  print(paste("The mean is", mean(vector)))
+  print(paste("The median is", median(vector)))
+  print(paste("The min is", min(vector), ". The max is", max(vector)))
+  print(paste("The standard deviation is", sd(vector)))
+  print(paste("The .05 and 95 quantiles are", quantile(vector, probs = .05),"and", quantile(vector,probs = .95)))
+  print(paste("The skewness is", skewness(vector)))
+}
+```
+
+3. Test the function with a vector. 
+
+```{r}
+vector <- c(1,2,3,4,5,6,7,8,9,10,50)
+printVecInfo(vector)
+```
+
+####Step 2: Creating samples in a jar
+
+4. Create a variable 'jar' that has 50 red and 50 blue marbles.
+
+```{r}
+jar <- c(rep('red', times=50),rep('blue',times=50))
+```
+
+5. Confirm there are 50 reds by summing the samples that are red
+
+```{r}
+sum(jar == "red")
+```
+
+6. Sample 10 marbles from the jar. How many are red? What was the percentage of red marbles?
+
+```{r}
+Sample <- sample(jar, size = 10)
+print(paste("There are",sum(Sample == "red"),"red marbles"))
+print(paste(sum(Sample == "red")/length(Sample),"percent of the marbles are red"))
+
+```
+
+7. Do the sampling 20 times, using the 'replicate' command. Use your printVecInfo to see information of the samples. Also generate a histogram of the samples. 
+
+```{r}
+#Creating the list of 20 numbers
+Samples <- replicate(20, sum(sample(jar,10,replace=TRUE)=="red"))
+Samples
+```
+
+```{r}
+#finding information on the samples
+printVecInfo(Samples)
+```
+
+```{r}
+#Generating the histogram of Samples
+hist(Samples)
+```
+
+8. Repeat #7, but this time, sample the jar 100 times. You should get 20 numbers, this time each number represents the mean of how many reds there were in the 100 samples. Use your printVecInfo to see information of the samples. Also generate a histogram of the samples.  
+
+```{r}
+#Creating the list of 20 numbers
+Samples2 <- replicate(20, sum(sample(jar,100,replace=TRUE)=="red"))
+Samples2
+```
+
+```{r}
+#finding information on the Samples2
+printVecInfo(Samples2)
+```
+
+```{r}
+#Generating the histogram of Samples2
+hist(Samples2)
+```
+
+9. Repeat	#8,	but	this	time,	replicate	the	sampling	100 times.	You	should	get	100	numbers,	this	time	each	number	represents	the	mean	of	how	many	reds	there	were	in	the	100	samples.	Use	your	printVecInfo	to	see	information	of	the	samples.	Also	generate	a	histogram	of	the	samples.
+
+```{r}
+#Creating the list of 100 numbers
+Samples3 <- replicate(100, sum(sample(jar,100,replace=TRUE)=="red"))
+Samples3
+```
+
+```{r}
+#finding information on the Samples3
+printVecInfo(Samples3)
+```
+
+```{r}
+#Generating the histogram of Samples3
+hist(Samples3)
+```
+
+####Step 3: Explore the airquality dataset
+
+10. Store the 'airquality' dataset into a temporary variable. 
+
+```{r}
+df <- airquality
+head(df)
+```
+
+11. Clean the dataset (i.e. remove the NAs)
+
+```{r}
+dfClean <- na.omit(df)
+head(dfClean)
+```
+
+
+12. Explore	Ozone,	Wind	and	Temp	by	doing	a	'printVecInfo'	on	each	as	well	as generating	a	histogram	for	each
+```{r}
+printVecInfo(dfClean$Ozone)
+```
+
+```{r}
+printVecInfo(dfClean$Wind)
+```
+
+```{r}
+printVecInfo(dfClean$Temp)
+```
+
+```{r}
+hist(dfClean$Ozone)
+```
+
+```{r}
+hist(dfClean$Wind)
+```
+
+```{r}
+hist(dfClean$Temp)
+```
+
+
+
+
+
+
