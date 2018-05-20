@@ -1,0 +1,214 @@
+---
+title: "Week6HW"
+author: "Brandon Croarkin"
+date: "May 19, 2018"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+  beamer_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Week 6 HW Assignment: 
+###Air Quality Analysis
+
+```{r, echo = TRUE}
+#load libraries
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+```
+
+####Step 1: Load the data
+
+We	will	use	the	airquality	data	set,	which you	should	already	have	as	part	of	your	R	installation.
+
+```{r, echo = TRUE}
+df <- airquality
+```
+
+```{r, echo = TRUE}
+head(df)
+```
+
+####Step 2: Clean the data
+
+After	you	load	the	data,	there	will	be	some	NAs	in	the	data.	You	need	to	figure	out	what	to	do	about	those	nasty	NAs.
+
+```{r, echo = TRUE}
+nrow(df)
+```
+
+```{r, echo = TRUE}
+sum(complete.cases(df))
+```
+
+```{r, echo = TRUE}
+sum(complete.cases(df))/nrow(df)
+```
+
+72.5% of our dataset is complete. I think that is enough to justify removing the rows with NA values. 
+
+```{r, echo = TRUE}
+df_clean <- df[complete.cases(df),]
+head(df_clean)
+```
+
+```{r, echo = TRUE}
+all(is.na(df_clean))
+```
+
+Can see that our data set is now clean!
+
+####Step 3: Understand the data distribution
+
+Create	the	following	visualizations using	ggplot:
+. Histograms	for	each	of	the	variables		
+. Boxplot	for	Ozone
+. Boxplot for	wind	values	(round	the	wind	to	get	a	good	number	of	"buckets")
+
+```{r, echo = TRUE}
+colnames(df_clean)
+```
+
+Ozone histogram
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Ozone))+geom_histogram(bins=10,fill="blue")+theme_bw() + ggtitle("Ozone histogram") + theme(plot.title = element_text(hjust=.5))
+```
+
+Solar histogram
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Solar.R))+geom_histogram(bins=10,fill="yellow")+theme_bw()+ ggtitle("Solar histogram") + theme(plot.title = element_text(hjust=.5))
+```
+
+Wind histogram
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Wind))+geom_histogram(bins=10,fill="skyblue1")+theme_bw() + ggtitle("Wind histogram") + theme(plot.title = element_text(hjust=.5))
+```
+
+Temp histogram
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Temp))+geom_histogram(bins=10,fill="red")+theme_bw()+ ggtitle("Temp histogram") + theme(plot.title = element_text(hjust=.5))
+```
+
+Boxplot for Ozone
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=factor(0), y=Ozone))+geom_boxplot(fill="blue")+theme_bw() + ggtitle("Ozone boxplot") + theme(plot.title = element_text(hjust=.5))
+```
+
+Boxplot for wind values
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=factor(0), y=round(Wind)))+geom_boxplot(fill="skyblue1")+theme_bw() + ggtitle("Wind boxplot") + theme(plot.title = element_text(hjust=.5))
+```
+
+####Step 3: Explore how the data changes over time
+
+First,	make	sure	to	create	appropriate	dates	(this	data	was	from	1973).	
+
+```{r, echo = TRUE}
+df_clean$Year <- 1973
+```
+
+```{r, echo = TRUE}
+df_clean$Date <- as.Date(with(df_clean,paste(Year,Month,Day,sep="-")), "%Y-%m-%d")
+str(df_clean)
+```
+
+Then	create	line	charts for	ozone,	temp,	wind	and	solar.R (one	line	chart	for	each,	and	then	one	chart	with	4	lines,	each	having	a	different	color).	Create	these	visualizations	using	ggplot.
+
+Note	that	for	the	chart	with	4	lines,	you	need	to	think	about	how	to	effectively	use	the	yaxis.
+
+Ozone line chart
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Date, y=Ozone))+geom_line(color="blue",size=.75)+theme_bw()+ ggtitle("Ozone line chart") + theme(plot.title = element_text(hjust=.5))
+```
+
+Temp line chart
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Date, y=Temp))+geom_line(color="red",size=.75)+theme_bw() + ggtitle("Temp line chart") + theme(plot.title = element_text(hjust=.5))
+```
+
+Wind line chart
+```{r, echo = TRUE}
+ggplot(df_clean, aes(x=Date, y=Wind))+geom_line(color="skyblue1",size=.75)+theme_bw() + ggtitle("Wind line chart") + theme(plot.title = element_text(hjust=.5))
+```
+
+Solar.R line chart
+```{r  echo = TRUE}
+ggplot(df_clean, aes(x=Date, y=Solar.R))+geom_line(color="yellow",size=.75)+theme_bw() + ggtitle("Solar.R line chart") + theme(plot.title = element_text(hjust=.5))
+```
+
+Combined line chart
+```{r  echo = TRUE}
+ggplot(df_clean) + 
+  geom_line(aes(x=Date, y=Solar.R), color="yellow",size=.75,label="Solar.R") +
+  geom_line(aes(x=Date, y=Temp), color="red",size=.75) +
+  geom_line(aes(x=Date, y=Wind), color="skyblue1",size=.75) +
+  geom_line(aes(x=Date, y=Ozone), color="blue",size=.75)+theme_bw() +
+  ggtitle("Combined line chart") + 
+  ylab("Value") +
+  theme(plot.title = element_text(hjust=.5))
+```
+
+Combined line chart (version 2)
+```{r  echo = TRUE}
+p1 <- ggplot(df_clean) + geom_line(aes(x=Date, y=Solar.R), color="yellow",size=.75)
+p2 <- ggplot(df_clean) + geom_line(aes(x=Date, y=Temp), color="red",size=.75) 
+p3 <- ggplot(df_clean) + geom_line(aes(x=Date, y=Wind), color="skyblue1",size=.75)
+p4 <- ggplot(df_clean) + geom_line(aes(x=Date, y=Ozone), color="blue",size=.75)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+```
+
+####Step 4: Look at all the data via a Heatmap
+
+Create a	heatmap,	with	each	day	along	the	x-axis	and	ozone,	temp,	wind	and	solar.r	along	the	y-axis,	and	days	as	rows	along	the	y-axis.	 Great	the	heatmap	using	geom_tile (this	defines	the	ggplot geometry	to	be	'tiles'	as	opposed	to	'lines'	and	the	other	geometry	we	have	previously	used).
+
+Note	that	you	need	to	figure	out	how	to	show	the	relative	change	equally	across	all	the	variables.
+
+```{r  echo = TRUE}
+#scale data
+df_clean2 <- df_clean
+df_clean2$Ozone <- scale(df_clean2$Ozone)
+df_clean2$Temp <- scale(df_clean2$Temp)
+df_clean2$Solar.R <- scale(df_clean2$Solar.R)
+df_clean2$Wind <- scale(df_clean2$Wind)
+head(df_clean2)
+
+```
+
+```{r  echo = TRUE}
+#melt dataframe
+df_clean2 <- melt(df_clean2,id.vars = "Day",measure.vars = c("Temp","Wind","Solar.R","Ozone"))
+head(df_clean2)
+```
+
+```{r  echo = TRUE}
+#make heatmap
+ggplot(df_clean2,aes(Day,variable))+geom_tile(aes(fill=value))
+```
+
+####Step 5: Look at all the data via a scatter chart
+
+Create	a	scatter	chart (using	ggplot	geom_point),	with	the	x-axis	representing	the	wind,	the	y-axis	representing	the	temperature,	the	size	of	each	dot	representing	the	ozone	and	the	color	representing	the	solar.R
+
+```{r  echo = TRUE}
+ggplot(df_clean, aes(x=Wind,y=Temp,size = Ozone, color = Solar.R)) + geom_point()
+```
+
+
+####Step 6: Final Analysis
+
+. Do	you	see	any	patterns	after	exploring	the	data?		
+
+There was an expected trend that it was warmer during summer months. High wind seems to be associated with lower temperatures. Higher ozone levels can also be seen with higher temperatures. 
+
+
+. What	was	the	most	useful	visualization?
+
+The final scatter was the most useful visualization for me. It was able to put the most information in one easy to read chart. 
+
+
+
