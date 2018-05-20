@@ -1,0 +1,52 @@
+---
+title: "Week5LabAssignment"
+author: "Brandon Croarkin"
+date: "May 16, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Week 5 Lab Assignment
+
+```{r}
+?sqldf
+```
+
+```{r}
+library(sqldf)
+```
+
+```{r}
+df <- airquality
+head(df)
+```
+
+```{r}
+avg_ozone <- sqldf('SELECT AVG(Ozone) FROM df')
+print(avg_ozone)
+```
+
+```{r}
+sqldf('SELECT * FROM df WHERE Ozone > (SELECT AVG(Ozone) FROM df)')
+```
+
+```{r}
+newAQ <- sqldf('SELECT * FROM df WHERE Ozone > (SELECT AVG(Ozone) FROM df)')
+str(newAQ)
+```
+
+```{r}
+head(newAQ)
+```
+
+```{r}
+avg_ozone2 <- mean(df$Ozone, na.rm = TRUE)
+avg_ozone2
+```
+
+```{r}
+
+```

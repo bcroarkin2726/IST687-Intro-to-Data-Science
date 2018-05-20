@@ -1,0 +1,133 @@
+---
+title: "Croarkin_Week5HW"
+author: "Brandon Croarkin"
+date: "May 12, 2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## IST687
+### JSON & tapply HW: Accident Analysis
+
+####Step 1: Load the data
+
+```{r}
+library(jsonlite)
+library(sqldf)
+library(RCurl)
+```
+
+```{r}
+URL <- "http://data.maryland.gov/api/views/pdvh-tf2u/rows.json?accessType=DOWNLOAD"
+apiResult <- getURL(URL)
+```
+
+```{r}
+json_file <- fromJSON(apiResult)
+```
+
+Looks like all the data is in the second element.
+
+```{r}
+data <- json_file[[2]]
+```
+
+```{r}
+numRows <- nrow(data)
+numRows
+```
+
+```{r}
+df <- data.frame(data)
+```
+
+####Step 2: Clean the data
+
+```{r}
+#need to remove the first 8 columns
+dfClean <- df[,-1:-8]
+head(dfClean)
+```
+
+```{r}
+namesOfColumns <-
+c("CASE_NUMBER","BARRACK","ACC_DATE","ACC_TIME","ACC_TIME_CODE","DAY_OF_WEEK","ROAD","INTERSECT_ROAD","DIST_FROM_INTERSECT","DIST_DIRECTION","CITY_NAME","COUNTY_CODE","COUNTY_NAME","VEHICLE_COUNT","PROP_DEST","INJURY","COLLISION_WITH_1","COLLISION_WITH_2")
+```
+
+```{r}
+names(dfClean) <- namesOfColumns
+head(dfClean)
+```
+
+```{r}
+#remove spaces from DAY_OF_WEEK column
+dfClean$DAY_OF_WEEK <- gsub(" ", "",dfClean$DAY_OF_WEEK)
+```
+
+####Understand the data using SQL (via SQLDF)
+
+```{r}
+#testing sqldf
+sqldf('SELECT * FROM dfClean')
+```
+
+Question 1: How many accidents happen on SUNDAY?
+```{r}
+sqldf('SELECT COUNT(*) FROM dfClean WHERE DAY_OF_WEEK="SUNDAY"')
+```
+2373 accidents happen on Sunday. 
+
+Question 2: How many accidents had injuries?
+
+```{r}
+#explore whether there are NA's in the injury column
+unique(dfClean$INJURY)
+```
+There are NA values!
+
+```{r}
+#let's make a new df
+dfClean2 <- dfClean[-which(is.na(dfClean$INJURY)),]
+unique(dfClean2$INJURY)
+```
+
+```{r}
+sqldf('SELECT COUNT(*) FROM dfClean2 WHERE INJURY="YES"')
+```
+6433 accidents had injuries.
+
+Question 3: List the injuries by day
+```{r}
+sqldf('SELECT DAY_OF_WEEK, COUNT(*) FROM dfClean2 WHERE INJURY="YES" GROUP BY DAY_OF_WEEK')
+```
+It looks like most injuries (1043) happen on Friday.
+
+####Understand the data using tapply
+
+Question 1: How many accidents happen on SUNDAY?
+```{r}
+tapply(dfClean2$CASE_NUMBER,dfClean2$DAY_OF_WEEK=="SUNDAY",length)
+```
+2373 accidents happen on Sunday. This matches what we have above with sqldf.
+
+Question 2: How many accidents had injuries?
+```{r}
+tapply(dfClean2$CASE_NUMBER,dfClean2$INJURY,length)
+```
+6433 accidents had injuries.This matches what we have above with sqldf.
+
+Question 3: List the injuries by day
+```{r}
+tapply(dfClean2$INJURY=="YES",dfClean2$DAY_OF_WEEK,sum)
+```
+This matches what we have above with sqldf!
+
+
+
+
+

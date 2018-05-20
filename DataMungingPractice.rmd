@@ -1,0 +1,299 @@
+---
+title: "IST687_Week5_DataMunging"
+author: "Brandon Croarkin"
+date: "May 11, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Munging
+
+Can connect to a large array of datasets already included in R
+
+```{r}
+#can see all the datasets that are included in R
+data()
+```
+
+```{r}
+#going to briefly explore a dataset included in R
+head(BOD)
+```
+
+```{r}
+summary(BOD)
+```
+
+```{r}
+str(BOD)
+```
+
+```{r}
+help(BOD)
+```
+
+####Working with Excel data
+
+```{r}
+#opening the file
+df <- read_excel("nst-est2011-01.xls")
+```
+
+```{r}
+#opening the file
+df2 <- read_excel("nst-est2011-01.xls")
+```
+
+```{r}
+#examining the file
+str(df)
+```
+
+Clearly we need to clean this dataset
+```{r}
+#remove the header rows
+df <- df[-1:-8,]
+head(df)
+```
+
+```{r}
+#keep only the first five problems
+df <- df[,1:5]
+tail(df)
+```
+
+```{r}
+#remove the last five rows
+df <- df[-52:-62,]
+tail(df)
+```
+
+```{r}
+#give our column header a better name. 
+colnames(df)[1] <- "stateName"
+```
+
+```{r}
+#clean the format of the states in column 1
+df$stateName <- str_replace(df$stateName,"\\.","")
+head(df)
+```
+
+```{r}
+#let's make a function to get rid of commas, spaces, and convert to number
+Numberize <- function(inputVector) {
+  #get rid of commas
+  inputVector <- gsub(",","",inputVector)
+  #get rid of spaces
+  inputVector <- gsub(" ","",inputVector)
+  #convert to number
+  inputVector <- as.numeric(inputVector)
+}
+```
+
+```{r}
+#change names and clean up the columns with numbers
+df$april10census <- Numberize(df$X__1)
+df$april10base <- Numberize(df$X__2)
+df$july10pop <- Numberize(df$X__3)
+df$july11pop <- Numberize(df$X__4)
+head(df)
+```
+
+```{r}
+#need to delete the columns we duplicated/cleaned-up
+df <- df[,-2:-5]
+head(df)
+```
+File is cleaned up and ready for analysis!
+
+####Working with Databases
+
+```{r}
+#establish R connection to SQL
+conSQL <- odbcConnect("ist659_project")
+```
+
+```{r}
+#assign SQL table list
+tblsSQL <- sqlTables(conSQL)
+tblsSQL
+```
+
+```{r}
+dataSQL <- sqlQuery(conSQL,paste("select * from Employee"))
+dataSQL
+```
+
+```{r}
+#need to set sqldf driver to another option since it was previously looking at MySQL
+options(sqldf.driver = 'SQLite')
+results <- sqldf('select mtcars.mpg from mtcars')
+results
+```
+
+```{r}
+mean(results$mpg)
+```
+
+```{r}
+results <- sqldf('select mtcars.mpg from mtcars where cyl=4')
+results
+```
+
+####JSON Data
+
+```{r}
+MakeGeoURL <- function(address) {
+  root <- "http://maps.google.com/maps/api/geocode/"
+  url <- paste(root, "json?address=",address,"&sensor=false",sep = "")
+  return(URLencode(url))
+}
+```
+
+```{r}
+MakeGeoURL("1600 Pennsylvania Avenue,Washington, DC")
+```
+
+```{r}
+Addr2latlng <- function(address){
+  url <- MakeGeoURL(address)
+  apiResult <- getURL(url)
+  geoStruct <- fromJSON(apiResult,simplify=FALSE)
+  lat <- NA
+  lng <- NA
+  try(lat <- geoStruct$results[[1]]$geometry$location$lat)
+  try(lng <- geoStruct$results[[1]]$geometry$location$lng)
+  return(c(lat,lng))
+}
+```
+
+```{r}
+#test function with the White House
+testData <- Addr2latlng("1600 Pennsylvania Avenue,Washington, DC")
+str(testData)
+```
+
+```{r}
+#test function with my address
+testData <- Addr2latlng("21284 Arcadia Court, Ashburn, VA")
+str(testData)
+```
+
+So cool! Let's try accesssing different JSON data.
+
+```{r}
+bikeURL <- "https://feeds.citibikenyc.com/stations/stations.json"
+apiResult <- getURL(bikeURL)
+```
+If you run the head on apiResult you get a crazy long output!
+
+```{r}
+results <- fromJSON(apiResult)
+str(results)
+```
+
+```{r}
+results[1]
+results[2]
+```
+
+Can see that all the actual data is stored in results[2].
+
+```{r}
+allBikeData <- results$stationBeanList
+str(allBikeData)
+```
+
+```{r}
+head(allBikeData)
+```
+
+```{r}
+allBikeData[1,]
+```
+
+```{r}
+nrow(allBikeData)
+```
+
+```{r}
+mean(allBikeData$availableDocks)
+```
+
+The function below is showing that there are 788 docks that have more than one dock available. 
+```{r}
+tapply(allBikeData$availableDocks,allBikeData$availableDocks>0,length)
+```
+
+```{r}
+bikedf <- data.frame(matrix(unlist(allBikeData),nrow=810,byrow=T),stringsAsFactors = FALSE)
+head(bikedf)
+```
+
+
+####Sapply and Tapply
+
+```{r}
+sapply(mtcars, mean)
+```
+
+```{r}
+tapply(mtcars$mpg, mtcars$cyl, mean)
+```
+
+```{r}
+sqldf('SELECT AVG(mtcars.mpg) FROM mtcars GROUP BY mtcars.cyl')
+```
+
+```{r}
+tapply(mtcars$mpg, mtcars$cyl==4,mean)
+```
+
+```{r}
+sqldf('SELECT AVG(mtcars.mpg) FROM mtcars WHERE mtcars.cyl = 4')
+```
+
+```{r}
+goodMPGcar <- function(mpg){
+  if(mpg > 24){
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+```
+
+```{r}
+sapply(mtcars$mpg,goodMPGcar)
+```
+
+```{r}
+sum(sapply(mtcars$mpg,goodMPGcar))
+```
+
+```{r}
+goodCars <- sapply(mtcars$mpg,goodMPGcar)
+mtcars[goodCars,]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
