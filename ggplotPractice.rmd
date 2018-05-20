@@ -1,0 +1,146 @@
+---
+title: "GGPLOT"
+author: "Brandon Croarkin"
+date: "May 19, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GGPLOT 2 Practice
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+df <- mtcars
+```
+
+```{r}
+head(df)
+```
+
+An example of the basic graphics we can make with R
+```{r echo=FALSE}
+hist(df$mpg,breaks=4)
+```
+
+Now let's try to re-create this with ggplot
+```{r echo=FALSE}
+g <- ggplot(df,aes(x=mpg)) + geom_histogram(bins=5)
+g
+```
+
+It is similar, but it actually a little worse than the one before. Let's try to make it better.
+
+```{r echo=FALSE}
+g <- ggplot(df,aes(x=mpg)) + geom_histogram(bins=5, color="black",fill="white")
+g 
+```
+
+```{r echo=FALSE}
+g + ggtitle("MPG Buckets")
+```
+
+
+```{r echo=FALSE}
+ggplot(df, aes(x=mpg)) + geom_histogram(binwidth = 5, color="black",fill="blue")
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(x=factor(0),mpg)) + geom_boxplot()
+#adding factor(0) lumps all the mpg together
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(group=cyl, x=cyl,mpg)) + geom_boxplot()
+#adding factor(0) lumps all the mpg together
+```
+
+
+```{r echo=FALSE}
+ggplot(df, aes(group=cyl, x=cyl,mpg)) + geom_boxplot() + coord_flip()
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(x=cyl)) + geom_bar()
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(x=cyl)) + geom_bar()
+```
+
+```{r echo=FALSE}
+car.names <- rownames(df)
+```
+
+```{r echo=FALSE}
+g <- ggplot(df, aes(x=car.names, y=wt)) + geom_bar(stat="identity")
+g
+```
+
+Need to clean up the x-axis to make it readable.
+
+```{r echo=FALSE}
+g <- g + theme(axis.text.x = element_text(angle=90, hjust=1))
+g
+```
+
+Looks better! Let's just clean it up a little more. 
+
+```{r echo=FALSE}
+g + ggtitle("Car Weights") + theme(plot.title = element_text(hjust=.5))
+```
+
+Let's make a stacked bar chart. 
+
+```{r echo=FALSE}
+#the fill is a factor of gears
+ggplot(df, aes(x=cyl, fill=factor(gear))) + geom_bar()
+```
+
+We can also unstack this bar chart
+
+```{r echo=FALSE}
+#the fill is a factor of gears
+ggplot(df, aes(x=cyl, fill=factor(gear))) + geom_bar(position="dodge")
+```
+
+Let's play with some scatters.
+
+```{r echo=FALSE}
+ggplot(df, aes(x=mpg,y=hp)) + geom_point()
+```
+
+Let's build this up a little.
+```{r echo=FALSE}
+ggplot(df, aes(x=mpg,y=hp)) + geom_point(aes(size=wt,color=cyl))
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(x=factor(0),mpg)) + geom_boxplot()
+```
+
+```{r echo=FALSE}
+ggplot(df, aes(x=factor(0),mpg)) + geom_boxplot()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
