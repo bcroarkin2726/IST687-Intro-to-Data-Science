@@ -1,0 +1,72 @@
+---
+title: "Week7Lab"
+author: "Brandon Croarkin"
+date: "June 1, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggmap)
+library(maps)
+```
+
+## IST687 - Lab 7
+###Maps & Visualizations
+
+Read in dataset: Syracuse Crime data
+```{r}
+setwd('C:\\Users\\brcro\\OneDrive\\Documents\\Syracuse\\IST 687 - Applied Data Science\\Week 7 - Map Mashup')
+syrCrime <- read.csv('syracuse-crime.csv')
+```
+
+```{r}
+head(syrCrime)
+```
+
+```{r}
+## renames colnames
+colnames(syrCrime) <- c('crime', 'address', 'city', 'date')
+```
+
+```{r}
+str(syrCrime)
+```
+
+```{r}
+#combine address and city so the geocode
+syrCrime$fullAddress <- paste(syrCrime$address, syrCrime$city)
+```
+
+
+```{r}
+#create the geo location for the addresses
+syrCrime$geo <- geocode(syrCrime$fullAddress)
+```
+
+```{r}
+#get the location to zoom the map in on
+syr <- geocode("syracuse, new york")
+syr.map <-  get_map(location = syr, zoom = 11)
+```
+
+```{r}
+gg <- ggmap(syr.map)
+```
+
+
+```{r}
+#making a map of Syracuse, NY with a color code for the different crimes
+gg + 
+  geom_point(data = syrCrime, aes(x=geo$lon, y=geo$lat,color=crime), alpha=.7,size=1.5,na.rm=TRUE) +
+  ggtitle('Crime in Syracuse, NY')
+```
+
+```{r}
+#density map of crime in Syracuse, NY
+gg + 
+  geom_density2d(data = syrCrime, aes(x=geo$lon, y=geo$lat),na.rm=TRUE) +
+  ggtitle('Crime Density in Syracuse, NY')
+```
+

@@ -1,0 +1,122 @@
+---
+title: "Associative Rule Mining"
+author: "Brandon Croarkin"
+date: "June 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Associative Rules Mining
+
+```{r}
+#load associative rules package
+library(arules)
+library(arulesViz)
+```
+
+We are going to work with the R Groceries dataset. 
+```{r}
+data(Groceries)
+summary(Groceries)
+```
+
+```{r}
+inspect(Groceries[1:5])
+```
+
+```{r}
+length(Groceries)
+```
+
+```{r}
+str(Groceries)
+```
+
+```{r}
+data <- Groceries@data
+str(data)
+```
+
+```{r}
+means <- rowMeans(data)
+```
+
+```{r}
+str(Groceries@itemInfo)
+```
+
+```{r}
+Groceries@itemInfo[1,]
+```
+
+```{r}
+labels <- Groceries@itemInfo[,1]
+levels <- Groceries@itemInfo$level2
+df <- data.frame(means, labels, levels)
+head(df)
+```
+
+```{r}
+df1 <- df[order(-df$means),]
+head(df1)
+```
+
+```{r}
+itemFrequencyPlot(Groceries, support = 0.05, cex.names=0.5)
+```
+
+```{r}
+apriori(Groceries, parameter = list(support = .005, confidence = .5))
+```
+
+```{r}
+ruleset <- apriori(Groceries, parameter = list(support = .01, confidence = .5))
+summary(ruleset)
+```
+
+```{r}
+inspect(ruleset)
+```
+
+```{r}
+ruleset <- apriori(Groceries, parameter = list(support = .005, confidence = .35))
+par(mfrow=c(1,1))
+plot(ruleset)
+```
+
+```{r}
+goodrules <- ruleset[quality(ruleset)$lift > 3.5]
+inspect(goodrules)
+```
+
+```{r}
+plot(goodrules)
+```
+
+```{r}
+plot(goodrules, method="graph",control=list(type="items"))
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+

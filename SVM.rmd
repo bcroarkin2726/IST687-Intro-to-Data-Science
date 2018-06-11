@@ -1,0 +1,164 @@
+---
+title: "Support Vector Machines (SVM)"
+author: "Brandon Croarkin"
+date: "June 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Support Vector Machines
+
+```{r}
+library(kernlab)
+library(caTools)
+```
+
+```{r}
+#load dataset
+data(spam)
+#inspect contents
+str(spam)
+```
+
+```{r}
+#dimension overview
+dim(spam)
+```
+
+```{r}
+#delineates span, nonspam counts
+table(spam$type)
+```
+
+```{r}
+#split into training and test
+sample <- sample.split(spam,SplitRatio = .66)
+train <- subset(spam, sample == TRUE)
+test <- subset(spam, sample == FALSE)
+```
+
+```{r}
+#train support vector model
+svmOutput <- ksvm(type ~ ., data = train, kernel = "rbfdot",kpar = "automatic",C = 5, cross = 3, prob.model = TRUE)
+svmOutput
+```
+
+```{r}
+#train support vector model with higher c
+svmOutput2 <- ksvm(type ~ ., data = train, kernel = "rbfdot",kpar = "automatic",C = 50, cross = 3, prob.model = TRUE)
+svmOutput2
+```
+
+```{r}
+#predict "testData" with svmOutput with C=5
+svmPred <- predict(svmOutput, test, type = "votes")
+compTable <- data.frame(test[,58],svmPred[1,])
+table(compTable)
+```
+
+```{r}
+#predict "testData" with svmOutput with C=50
+svmPred2 <- predict(svmOutput2, test, type = "votes")
+compTable2 <- data.frame(test[,58],svmPred2[1,])
+table(compTable2)
+```
+
+Now let's try with Banking data
+```{r}
+setwd('C:\\Users\\brcro\\OneDrive\\Documents\\Syracuse\\SCM 651 - Business Analytics\\Week 9 - Choice Models and Neural Networks')
+bank <- read_csv('Week9creditset.csv')
+str(bank)
+```
+
+```{r}
+bank$default10yr <- as.factor(bank$default10yr)
+class(bank$default10yr)
+```
+
+```{r}
+nrow(bank)
+```
+
+```{r}
+#split into training and test
+sample <- sample.split(bank,SplitRatio = .7)
+train <- subset(bank, sample == TRUE)
+test <- subset(bank, sample == FALSE)
+```
+
+```{r}
+head(train)
+```
+
+```{r}
+#create support vector machine model
+model <- ksvm(default10yr ~ ., data = train)
+model
+```
+
+```{r}
+pred <- predict(model, test)
+table(pred, test$default10yr)
+```
+
+```{r}
+#find our error rate
+results <- table(pred, test$default10yr)
+totalCorrect <- results[1,1] + results[2,2]
+totalCorrect/nrow(test)
+```
+
+```{r}
+#let's tweak the model
+model1 <- ksvm(default10yr ~ LTI, data = test)
+model1
+```
+
+```{r}
+pred <- predict(model1, test)
+table(pred, test$default10yr)
+```
+
+```{r}
+#find our error rate
+results <- table(pred, test$default10yr)
+totalCorrect <- results[1,1] + results[2,2]
+totalCorrect/nrow(test)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+

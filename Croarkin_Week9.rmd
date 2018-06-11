@@ -1,0 +1,327 @@
+---
+title: "Week 9 HW"
+author: "Brandon Croarkin"
+date: "June 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## IST-687 Support Vector Machines Lab
+
+```{r}
+library(ggplot2)
+library(kernlab)
+library(caTools)
+library(e1071)
+library(gridExtra)
+```
+
+####Step 1: Load the data
+
+Let go	back	and	analyze	the	air	quality	dataset	(if	you	remember,	we	used	that	previously,	in	the	visualization	lab).	Remember	to	think	about	how	to	deal	with	the	NAs	in	the	data.
+
+```{r}
+df <- airquality
+```
+
+```{r}
+#remove rows with NA values
+df2 <- df[complete.cases(df),]
+head(df2)
+```
+
+####Step 2: Create train and test data sets
+
+Using	techniques	discussed	in	class,	create	two	datasets	- one	for	training	and	one	for	testing.
+
+```{r}
+#split into training and test
+sample <- sample.split(df2,SplitRatio = .66)
+train <- subset(df2, sample == TRUE)
+test <- subset(df2, sample == FALSE)
+```
+
+```{r}
+head(train)
+```
+
+```{r}
+head(test)
+```
+
+####Step 3: Build a Model using KSVM & visualize the 
+
+1) Build	a	model	(using	the	'ksvm'	function,	trying	to	predict	onzone).	You	can	use	all	the	possible	attributes,	or	select	the	attributes	that	you	think	would	be	the	most helpful.
+
+```{r}
+#train support vector model with all attributes
+svmOutput <- ksvm(Ozone ~ ., data = train, kernel = "rbfdot",kpar = "automatic",C = 5, cross = 3, prob.model = TRUE)
+svmOutput
+```
+
+2) Test	the	model	on	the	testing	dataset,	and	compute	the	Root	Mean	Squared	Error.
+
+```{r}
+#test the model on the testing dataset
+pred <- predict(svmOutput, test)
+head(pred)
+```
+
+```{r}
+#add pred as a column to df2 
+test$pred <- pred
+head(test)
+```
+
+```{r}
+#add error column
+test$error <- abs(test$Ozone - test$pred)
+head(test)
+```
+
+```{r}
+#Compute Root Mean Squared Error
+sumRootError <- sum((test$Ozone - test$pred)^2)
+RMSE <- sqrt(sumRootError)
+RMSE
+```
+
+3) Plot	the	results.	Use	a	scatter	plot.	Have	the	x-axis	represent	temperature,	the	y-axis	represent	wind,	the	point	size	and	color	represent	the	error,	as	defined	by	the	actual	ozone	level		minus	the	predicted	ozone	level).
+
+```{r}
+KSVMplot <- ggplot(test, aes(x=Temp,y=Wind)) + geom_point(aes(size=error,color=error)) + 
+  guides(colour = guide_legend(override.aes = list(size=2, stroke=1.5))) + ggtitle("KSVM Model Error Plot") + theme(plot.title = element_text(hjust = 0.5))
+KSVMplot
+```
+
+4) Compute	models	and	plot	the	results	for	'svm'	(in	the	e1071	package)	and	'lm'. Generate	similar	charts for	each	model.
+
+```{r}
+#train support vector model with all attributes with e1071 package
+svmOutput2 <- svm(Ozone ~ ., data = train, C = 5)
+svmOutput2
+```
+
+```{r}
+#test the model on the testing dataset
+pred2 <- predict(svmOutput2, test)
+#add pred as a column to df2 
+test$pred2 <- pred2
+#add error column
+test$error2 <- abs(test$Ozone - test$pred2)
+head(test)
+```
+
+```{r}
+SVMplot <- ggplot(test, aes(x=Temp,y=Wind)) + geom_point(aes(size=error2,color=error2)) + 
+  guides(colour = guide_legend(override.aes = list(size=2, stroke=1.5))) + ggtitle("SVM Model Error Plot") + theme(plot.title = element_text(hjust = 0.5))
+SVMplot
+```
+
+```{r}
+#train linear model with all attributes with e1071 package
+linearOutput <- lm(Ozone ~ ., data = train)
+summary(linearOutput)
+```
+
+```{r}
+#test the model on the testing dataset
+pred3 <- predict(linearOutput, test)
+#add pred as a column to df2 
+test$pred3 <- pred3
+#add error column
+test$error3 <- abs(test$Ozone - test$pred3)
+head(test)
+```
+
+```{r}
+linearPlot <- ggplot(test, aes(x=Temp,y=Wind)) + geom_point(aes(size=error3,color=error3)) + 
+  guides(colour = guide_legend(override.aes = list(size=2, stroke=1.5))) + ggtitle("Linear Model Error Plot") + theme(plot.title = element_text(hjust = 0.5))
+linearPlot
+```
+
+5) Show	all	three	results	(charts)	in	one	window,	using	the	grid.arrange	function.
+
+```{r}
+#removing legend from two of the plots
+KSVMplot <- KSVMplot + theme(legend.position='none')
+SVMplot <- SVMplot + theme(legend.position='none')
+#plot all charts using grid.arrange
+grid.arrange(KSVMplot,SVMplot,linearPlot, nrow=3)
+```
+
+####Step 4: Create a 'goodOzone' variable
+
+This	variable	should	be	either	0	or	1.	It	should	be	0	if	the	ozone	is	below	the	average	for	all	the	data observations,	and 1	if	it	is	equal	to	or	above	the	average	ozone	observed.
+
+```{r}
+#find the mean Ozone
+meanOzone <- mean(df2$Ozone)
+meanOzone
+```
+
+```{r}
+#create the goodOzone variable in test and train datasets
+test$goodOzone <- ifelse(test$Ozone >= meanOzone, 1, 0)
+train$goodOzone <- ifelse(train$Ozone >= meanOzone, 1, 0)
+#make the value a factor so it works properly for prediction
+test$goodOzone <- as.factor(test$goodOzone)
+train$goodOzone <- as.factor(train$goodOzone)
+head(train)
+```
+
+####Step 5: See if we can do a better job predicting 'good' and 'bad' days
+
+1) Build	a	model	(using	the	'ksvm'	function,	trying	to	predict	'goodOzone').	You	can	use	all	the	possible	attributes,	or	select	the	attributes	that you	think	would	be	the	most	helpful.
+
+```{r}
+#train support vector model with all attributes
+svmOutput3 <- ksvm(goodOzone ~ ., data = train, kernel = "rbfdot",kpar = "automatic",C = 5, cross = 3, prob.model = TRUE)
+svmOutput3
+```
+
+2) Test	the	model	on	the	testing	dataset,	and	compute	the	percent	of	'goodOzone'	that was	correctly	predicted.
+
+```{r}
+#test the model on the testing dataset
+pred4 <- predict(svmOutput3, test)
+#create results table
+results <- table(pred4, test$goodOzone)
+results
+```
+
+```{r}
+#find our error rate
+totalCorrect <- results[1,1] + results[2,2]
+totalCorrect/nrow(test)
+```
+
+3) Plot	the	results.	Use	a	scatter	plot.	Have	the	x-axis	represent	temperature,	the	y-axis represent	wind,	the	shape	representing	what	was	predicted	(good	or	bad	day),	the	color	representing	the	actual	value	of	'goodOzone'	(i.e.	if	the	actual	ozone	level		was	
+good)	and	the	size	represent	if	the	prediction	was	correct	(larger	symbols	should	be	the	observations	the	model	got	wrong).
+
+```{r}
+#add pred value to test dataframe
+test$predGoodOzone <- predict(svmOutput3, test)
+#add variable for whether pred was correct
+test$predCorrect <- ifelse(test$goodOzone == test$predGoodOzone, "correct", "wrong")
+head(test)
+```
+
+```{r}
+svmGoodOzonePlot <- ggplot(test, aes(x= Temp, y=Wind)) + geom_point(aes(shape = goodOzone,color=predGoodOzone,size = predCorrect)) + ggtitle("KSVM goodOzone Error Plot") + theme(plot.title = element_text(hjust = 0.5))
+svmGoodOzonePlot
+```
+
+4) Compute	models	and	plot	the	results	for	'svm'	(in	the	e1071	package)	and	'nb'	(Naive	Bayes,	also	in	the	e1071	package).
+
+```{r}
+#train support vector model with all attributes with e1071 package
+svmOutput4 <- svm(goodOzone ~ ., data = train,C = 5, cross = 3, prob.model = TRUE)
+svmOutput4
+```
+
+```{r}
+#test the model on the testing dataset
+pred5 <- predict(svmOutput4, test)
+#create results table
+results <- table(pred5, test$goodOzone)
+results
+```
+
+```{r}
+#add pred value to test dataframe
+test$predGoodOzone2 <- predict(svmOutput4, test)
+#add variable for whether pred was correct
+test$predCorrect2 <- ifelse(test$goodOzone == test$predGoodOzone2, "correct", "wrong")
+head(test)
+```
+
+```{r}
+svmGoodOzonePlot2 <- ggplot(test, aes(x= Temp, y=Wind)) + geom_point(aes(shape = goodOzone,color=predGoodOzone2,size = predCorrect2),alpha = .8) + ggtitle("SVM goodOzone Error Plot") + theme(plot.title = element_text(hjust = 0.5))
+svmGoodOzonePlot2
+```
+
+```{r}
+#train naive bayes model with all attributes with e1071 package
+naiveBayesModel <- naiveBayes(goodOzone ~ ., data = train)
+naiveBayesModel 
+```
+
+```{r}
+#test the model on the testing dataset
+pred6 <- predict(naiveBayesModel, test)
+#create results table
+results <- table(pred6, test$goodOzone)
+results
+```
+
+```{r}
+#add pred value to test dataframe
+test$predGoodOzone3 <- predict(naiveBayesModel, test)
+#add variable for whether pred was correct
+test$predCorrect3 <- ifelse(test$goodOzone == test$predGoodOzone3, "correct", "wrong")
+head(test)
+```
+
+```{r}
+naiveBayesPlot <- ggplot(test, aes(x= Temp, y=Wind)) + geom_point(aes(shape = goodOzone,color=predGoodOzone3,size = predCorrect3),alpha = .8) + ggtitle("Naive Bayes goodOzone Error Plot") + theme(plot.title = element_text(hjust = 0.5)) 
+naiveBayesPlot
+```
+
+5) Show	all	three	results	(charts)	in	one	window,	using	the	grid.arrange	function (have	two	charts	in	one	row).
+
+```{r}
+#removing legend from two of the plots
+svmGoodOzonePlot <- svmGoodOzonePlot + theme(legend.position='none')
+svmGoodOzonePlot2 <- svmGoodOzonePlot2 + theme(legend.position='none')
+naiveBayesPlot <- naiveBayesPlot + theme(legend.position='bottom')
+#plot all charts using grid.arrange
+grid.arrange(svmGoodOzonePlot,svmGoodOzonePlot2,naiveBayesPlot, nrow=2)
+```
+
+
+####Step 6: Which are the best Models for this data?
+
+Review	what	you	have done and	state	which	is	the	best and	why.
+
+I have created numerous models to predict the ozone for a given day. I have attempted to predict the precise level of ozone using SVM from the kernlab and e1071 packages and a linear model. Additionally, I have attempted to predict 'good ozone' by breaking the ozone numbers into good ozone or bad ozone, based on whether they are below the average or at/above the average. I predicted 'good ozonen' using VM from the kernlab and e1071 packages and a naive bayes model. 
+
+```{r}
+head(test)
+```
+
+```{r}
+#Compute Root Mean Squared Error for first 3 models on Ozone level
+ksvmRMSE <- sqrt(sum((test$error)^2))
+svmRMSE <- sqrt(sum((test$error2)^2))
+lmRMSE <- sqrt(sum((test$error3)^2))
+paste("RMSE of ksvmRMSE is", ksvmRMSE)
+paste("RMSE of svmRMSE is", svmRMSE)
+paste("RMSE of lmRMSE is", lmRMSE)
+```
+
+```{r}
+#create results tables
+resultsKSVM <- table(pred4, test$goodOzone)
+resultsSVM <- table(pred5, test$goodOzone)
+resultsNaiveBayes <- table(pred6, test$goodOzone)
+#find total correct for each
+totalCorrectKSVM <- resultsKSVM[1,1] + resultsKSVM[2,2]
+totalCorrectSVM <- resultsSVM[1,1] + resultsSVM[2,2]
+totalCorrectNaiveBayes <- resultsNaiveBayes[1,1] + resultsNaiveBayes[2,2]
+#find our percent correct
+percentCorrectKSVM <- totalCorrectKSVM/nrow(test)
+percentCorrectSVM <- totalCorrectSVM/nrow(test)
+percentCorrectNaiveBayes <- totalCorrectNaiveBayes/nrow(test)
+#print results
+paste("Percent correct for KSVM is", round(percentCorrectKSVM * 100,1))
+paste("Percent correct for SVM is", round(percentCorrectSVM * 100,1))
+paste("Percent correct for Naive Bayes is", round(percentCorrectNaiveBayes * 100,1))
+```
+
+Based on the results above, the svm model from the e1071 package appears to do the best for predicting the ozone level for a given day and the Naive Bayes model appears to be the best for predicting whether it is going to be a good Ozone day or not. I determined this since the svm model from the e1071 package minimized the RMSE on the test data and the naive model had the highest percent correct on the test data. 
+
+Additional tests would need to be done to try to optimize each of the models with different parameters, such as C (cost of constraints), as this could alter our results. Furthermore, it is difficult to say what  model is best overall since they perform different functions (regression vs classification) and thus the best model likely depends on the use case. 
